@@ -6,7 +6,6 @@
 *.dylib
 
 *.bak
-*.mod
 scribble/
 
 # Test binary, built with `go test -c`
