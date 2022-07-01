@@ -2,8 +2,17 @@
 YASP - Yet Another (SOCKS) Proxy, but with UDP support for SOCKS-5
 
 ## What it is
-A very simple SOCKS proxy server based on Go. It supports SOCKS-4 and SOCKS-5.
-Supplementary to most of the already existing proxy implementations it also supports UDP connections via SOCKS-5. This facilitates forwarding of UDP traffic without the need for cumbersome workarounds like using socat to convert UDP to TCP on client side, then send the TCP packets to the proxy, and then revert the traffic back to UDP before it leaves the proxy for the destination.
+A simple SOCKS proxy server based on Go. It supports SOCKS-4 and SOCKS-5.
+Supplementary to most of the already existing proxy implementations it also supports UDP connections via SOCKS-5. This facilitates forwarding of UDP traffic without the need for cumbersome workarounds like using socat to convert UDP to TCP and vice versa.
+
+## How it works
+YASP opens two sockets on the server:
++ A TCP socket to listen for SOCKS proxy requests
++ A UDP socket acting as forwarder for proxied UDP connections
+
+A SOCKS client requests a SOCKS-5 UDP port association via the TCP socket which responds with the IP and port of the UDP forwarder. The client then directs its UDP traffic towards the UDP forwarder.
+
+The forwarder strips the SOCKS header from the clients' packets and forwards them to the destination depicted in the header. Packets returning from the destination are processed the other way round: the forwarder prepends them with the SOCKS header and returns them to the client.
 
 ## Installation
 Assuming your GOPATH is set to ~/go:
