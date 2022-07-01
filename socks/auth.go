@@ -1,5 +1,9 @@
 package socks
 
+/*
+Original source from https://github.com/fangdingjun/socks-go
+*/
+
 import "net"
 
 // AuthService the service to authenticate the user for socks5

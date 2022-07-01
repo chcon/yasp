@@ -1,5 +1,9 @@
 package forwarder
 
+/*
+Original source from https://github.com/1lann/udp-forward with modifications for UDP forwarding via SOCKS-5.
+*/
+
 import (
 	"encoding/binary"
 	"errors"

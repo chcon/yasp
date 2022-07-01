@@ -1,5 +1,9 @@
 package socks
 
+/*
+Original source from https://github.com/fangdingjun/socks-go with modifications for UDP forwarding via SOCKS-5.
+*/
+
 import (
 	"encoding/binary"
 	"errors"
