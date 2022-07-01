@@ -19,15 +19,14 @@ func main() {
 	var proxySource string
 	var timeout int
 
-	// flags declaration using flag package
+	// command line parameters
 	flag.StringVar(&forwarderSource, "u", "127.0.0.1:49111", "UDP forwarder bind address [IP:port]")
 	flag.StringVar(&proxySource, "p", "127.0.0.1:3180", "Socks proxy bind address [IP:port]")
 	flag.IntVar(&timeout, "t", 300, "Timeout [seconds]")
 
 	flag.Parse()
 
-	// Forward. It's asynchronous.
-	// https://github.com/1lann/udp-forward
+	// Start UDP forwarder
 	forwarder, err := forwarder.Forward(forwarderSource, time.Duration(timeout)*time.Second)
 	if err != nil {
 		panic(err)
@@ -48,16 +47,15 @@ func main() {
 	forwarder.Close()
 }
 
+// starts the SOCKS proxy listener
 func socksListener(forwarder *forwarder.Forwarder, proxy string) {
-
-	// https://github.com/fangdingjun/socks-go
 
 	conn, err := net.Listen("tcp", proxy)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	// a := socks.PasswordAuth{Username: "user", Password: "password"}
+	// @TODO: a := socks.PasswordAuth{Username: "user", Password: "password"}
 
 	for {
 		c, err := conn.Accept()

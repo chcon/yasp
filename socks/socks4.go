@@ -1,9 +1,14 @@
 package socks
 
+/*
+Original source from https://github.com/fangdingjun/socks-go
+*/
+
 import (
 	"encoding/binary"
 	"fmt"
 	"io"
+
 	//"log"
 	"net"
 )
