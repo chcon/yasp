@@ -16,6 +16,8 @@ Assuming your GOPATH is set to ~/go:
 ```
 This creates the _yasp_ executable in the current directory. Move it anywhere you want and run it.
 
+You can also run _go install_, which builds the executable inside the directory ~/go/bin/.
+
 ## Usage
 ```
 $ ./yasp -h
