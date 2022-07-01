@@ -5,14 +5,18 @@ YASP - Yet Another (SOCKS) Proxy, but with UDP support for SOCKS-5
 A very simple SOCKS proxy server based on Go. It supports SOCKS-4 and SOCKS-5.
 Supplementary to most of the already existing proxy implementations it also supports UDP connections via SOCKS-5. This facilitates forwarding of UDP traffic without the need for cumbersome workarounds like using socat to convert UDP to TCP on client side, then send the TCP packets to the proxy, and then revert the traffic back to UDP before it leaves the proxy for the destination.
 
-## Acknowledement
-This is not written from scratch. I combined an existing SOCKS proxy implementation and an existing UDP forwarder implementation and added the code to handle UDP traffic via SOCKS-5 to both.
-Acknowledgements go to the maintainers of these two projects:
-+ https://github.com/fangdingjun/socks-go
-+ https://github.com/1lann/udp-forward
+## Installation
+Assuming your GOPATH is set to ~/go:
+```
+~$ go get github.com/chcon/yasp
+~$ cd go/src/github.com/chcon/yasp/
+~/go/src/github.com/chcon/yasp$ go build
+~/go/src/github.com/chcon/yasp$ ls -l yasp
+-rwxrwxr-x 1 user user 3195966 Jul  1 16:31 yasp
+```
+This creates the _yasp_ executable in the current directory. Move it anywhere you want and run it.
 
 ## Usage
-
 ```
 $ ./yasp -h
 Usage of ./yasp:
@@ -38,8 +42,8 @@ $ ./yasp -p 192.168.1.100:3180 -u 192.168.1.100:41234 -t 3600
 ```
 
 ## Limitations
-+ IPv6 and URL support is not yet finalized, especially the UDP forwarder bind address currently must be an IPv4 address.
-+ Currently no authentication; the bind ports on the proxy server should be restricted by firewall rules to single IP addresses or small subnets
++ IPv6 support is not yet finalized, especially the UDP forwarder bind address currently must be an IPv4 address.
++ Currently no authentication/registration; the bind ports on the proxy server should be restricted by firewall to trusted source IP addresses
 
 ## TODO
 + Unit tests (shame on me)
@@ -47,3 +51,9 @@ $ ./yasp -p 192.168.1.100:3180 -u 192.168.1.100:41234 -t 3600
 + Implement proxy authorization
 + Register clients from the proxy to the forwarder
 + Improve logging
+
+## Acknowledgements
+This is not written from scratch. I combined an existing SOCKS proxy implementation and an existing UDP forwarder implementation and added the code to handle UDP traffic via SOCKS-5 to both.
+Acknowledgements go to the maintainers of these two projects:
++ https://github.com/fangdingjun/socks-go
++ https://github.com/1lann/udp-forward
