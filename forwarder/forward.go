@@ -10,7 +10,6 @@ import (
 	"fmt"
 	"log"
 	"net"
-	"strconv"
 	"strings"
 	"sync"
 	"time"
@@ -87,18 +86,20 @@ func Forward(src string, timeout time.Duration) (*Forwarder, error) {
 	return forwarder, nil
 }
 
+// Register a client's IP; only src IPs that are registered will have their packages forwarded, other packages will be ignored. This should be called from the SOCKS proxy.
 func (f *Forwarder) RegisterClientIp(ip string) {
 	if !Find(f.registeredClients, ip) {
-		f.registeredClients = append(f.registeredClients, ip)
+		// f.registeredClients = append(f.registeredClients, ip)
 		log.Println("Registered new client with forwarder: ", ip)
 	}
 }
 
+// Returns true, if the IP is registered with the forwarder, false otherwise
 func (f *Forwarder) IsClientRegistered(ip string) bool {
 	return Find(f.registeredClients, ip)
 }
 
-// start a forwarder handler for a src->dest mapping
+// start a forwarder handler to listen on incoming connections
 func (f *Forwarder) run() {
 	for {
 		buf := make([]byte, bufferSize)
@@ -109,6 +110,7 @@ func (f *Forwarder) run() {
 			return
 		}
 
+		//@TODO: check client registration status
 		/*
 			src_ip := strings.Split(src.String(), ":")[0]
 			if !Find(f.registeredClients, src_ip) {
@@ -128,10 +130,12 @@ func (f *Forwarder) run() {
 	}
 }
 
-// Returns the destination address, header length
+// Parses a SOCKS-5 header and returns the destination address, header length
 func extractSocks5UDPReqHeader(header []byte) (*net.UDPAddr, int, error) {
 
 	/*
+		Header format:
+
 		+----+------+------+----------+----------+----------+
 		|RSV | FRAG | ATYP | DST.ADDR | DST.PORT |   DATA   |
 		+----+------+------+----------+----------+----------+
@@ -177,19 +181,32 @@ func extractSocks5UDPReqHeader(header []byte) (*net.UDPAddr, int, error) {
 	return dst, 4 + hlen + 2, nil
 }
 
-// returns the socks header that needs to be sent back to the client before each packet
+// returns the SOCKS-5 header that needs to be sent back to the client before each packet
 func createSocks5Header(addr *net.UDPAddr) ([]byte, error) {
-	// encode UDP forwarder ip
-	_ip := net.ParseIP(strings.Split(addr.String(), ":")[0])
+	/*
+		Header format:
 
-	// encode UDP forwarder port
-	int_port, err := strconv.ParseUint(strings.Split(addr.String(), ":")[1], 10, 16)
-	if err != nil {
-		return nil, err
-	}
+		+----+------+------+----------+----------+----------+
+		|RSV | FRAG | ATYP | DST.ADDR | DST.PORT |   DATA   |
+		+----+------+------+----------+----------+----------+
+		| 2  |  1   |  1   | Variable |    2     | Variable |
+		+----+------+------+----------+----------+----------+
+	*/
+
 	_port := make([]byte, 2)
-	binary.BigEndian.PutUint16(_port, uint16(int_port))
+	binary.BigEndian.PutUint16(_port, uint16(addr.Port))
 
+	// IPv6
+	if strings.Count(addr.String(), ":") >= 2 {
+		// return nil, errors.New("only IPv4 currently supported")
+		header := []byte{0x00, 0x00, 0x00, 0x04}
+		header = append(header, addr.IP...)
+		header = append(header, _port[0], _port[1])
+		return header, nil
+	}
+
+	// IPv4
+	_ip := addr.IP
 	return []byte{0x00, 0x00, 0x00, 0x01, _ip[len(_ip)-4], _ip[len(_ip)-3], _ip[len(_ip)-2], _ip[len(_ip)-1], _port[0], _port[1]}, nil
 }
 
@@ -362,8 +379,9 @@ func (f *Forwarder) Connected() []string {
 	return results
 }
 
-func (f *Forwarder) GetBindAddress() string {
-	return f.src.String()
+// Returns the bind address of this forwarder instance
+func (f *Forwarder) GetBindAddress() *net.UDPAddr {
+	return f.src
 }
 
 func Find(slice []string, val string) bool {

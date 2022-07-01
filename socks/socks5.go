@@ -11,7 +11,6 @@ import (
 	"io"
 	"log"
 	"net"
-	"strconv"
 	"strings"
 
 	"github.com/chcon/yasp/forwarder"
@@ -273,11 +272,11 @@ func (s5 *socks5Conn) processRequest() error {
 		/*
 			response
 			byte |0   |  1   | 2  |   3    | 4 | .. | n-2 | n-1 | n |
-					|0x05|status|0x00|addrtype|     addr     |  port   |
+				 |0x05|status|0x00|addrtype|     addr     |  port   |
 
 			addr format:
 			byte |0   |1-4         |
-					|0x01|IPv4 address|
+			     |0x01|IPv4 address|
 
 
 			NOTE:
@@ -299,18 +298,12 @@ func (s5 *socks5Conn) processRequest() error {
 
 		*/
 
-		// encode UDP forwarder ip
-		_ip := net.ParseIP(strings.Split(s5.udpForwarder.GetBindAddress(), ":")[0])
+		//@TODO: Support IPv6 bind address for UDP forwarder
 
-		// encode UDP forwarder port
-		int_port, err := strconv.ParseUint(strings.Split(s5.udpForwarder.GetBindAddress(), ":")[1], 10, 16)
-		if err != nil {
-			// connection failed
-			s5.clientConn.Write([]byte{0x05, 0x01, 0x00, 0x01, 0x00, 0x00, 0x00, 0x00, 0x01, 0x01})
-			return err
-		}
+		// IP/Port of UDP forwarder
+		_ip := s5.udpForwarder.GetBindAddress().IP
 		_port := make([]byte, 2)
-		binary.BigEndian.PutUint16(_port, uint16(int_port))
+		binary.BigEndian.PutUint16(_port, uint16(s5.udpForwarder.GetBindAddress().Port))
 
 		// register client's IP to UDP Forwarder
 		s5.udpForwarder.RegisterClientIp(strings.Split(s5.clientConn.RemoteAddr().String(), ":")[0])

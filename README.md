@@ -7,7 +7,7 @@ Supplementary to most of the already existing proxy implementations it also supp
 
 ## Acknowledement
 This is not written from scratch. I combined an existing SOCKS proxy implementation and an existing UDP forwarder implementation and added the code to handle UDP traffic via SOCKS-5 to both.
-Acknowledgements go to the maintainers of these two packages:
+Acknowledgements go to the maintainers of these two projects:
 + https://github.com/fangdingjun/socks-go
 + https://github.com/1lann/udp-forward
 
